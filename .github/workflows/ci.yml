@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
@@ -24,6 +26,9 @@ jobs:
 
       - name: Lint
         run: ruff check .
+
+      - name: Check schema contract
+        run: python scripts/check_schema_contract.py
 
       - name: Test
         run: pytest
