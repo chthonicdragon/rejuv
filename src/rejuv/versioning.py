@@ -4,7 +4,7 @@ from collections import deque
 from collections.abc import Callable, Mapping
 from copy import deepcopy
 from enum import StrEnum
-from typing import Any, TypeAlias
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -16,8 +16,8 @@ from rejuv.releases import RELEASE_MANIFEST_VERSION
 from rejuv.sources import SOURCE_CONTRACT_VERSION
 
 
-JSONMapping: TypeAlias = Mapping[str, Any]
-Migration: TypeAlias = Callable[[dict[str, Any]], dict[str, Any]]
+type JSONMapping = Mapping[str, Any]
+type Migration = Callable[[dict[str, Any]], dict[str, Any]]
 
 
 class ContractKind(StrEnum):
@@ -213,8 +213,11 @@ def migrate_payload(
             )
 
         target_reader = readers.get(actual)
-        if target_reader is not None:
-            target_reader.model_validate(_payload_copy(result))
+        if target_reader is None:
+            raise UnsupportedContractVersionError(
+                f"Migration target {kind.value} version {actual!r} has no registered reader."
+            )
+        target_reader.model_validate(_payload_copy(result))
 
     return result
 
