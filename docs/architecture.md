@@ -137,15 +137,23 @@ MCP tools must return structured data, stable identifiers, schema versions, and 
 
 ## Plugin boundaries
 
-Adapters are replaceable plugins. A source adapter must implement conceptually:
+Adapters are replaceable plugins. The normative Python boundary is the
+`SourceAdapter` protocol documented in [source-adapters.md](source-adapters.md) and
+RFC-0002.
+
+A source adapter implements:
 
 ```python
+source_manifest()
 discover()
 fetch()
 parse()
 normalize()
 validate()
 ```
+
+Raw artifact identity is checksum-based. Source-reported version strings are provenance,
+not sufficient content identity.
 
 Benchmark tasks should also be pluggable:
 
