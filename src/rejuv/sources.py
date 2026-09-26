@@ -5,11 +5,14 @@ import hmac
 from dataclasses import dataclass
 from datetime import date, datetime
 from enum import StrEnum
-from typing import Iterable, Protocol, Sequence, TypeVar, runtime_checkable
+from typing import Final, Iterable, Literal, Protocol, Sequence, TypeVar, runtime_checkable
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
 
 from rejuv.models import InterventionEpisode
+
+
+SOURCE_CONTRACT_VERSION: Final[str] = "0.1.0"
 
 
 class SourceModel(BaseModel):
@@ -78,7 +81,15 @@ class SourceSnapshot(SourceModel):
 
 
 class SourceManifest(SourceModel):
-    manifest_version: str = "0.1.0"
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "x-rejuv-source-contract-version": SOURCE_CONTRACT_VERSION,
+        },
+    )
+
+    manifest_version: Literal["0.1.0"] = "0.1.0"
     source_id: str = Field(min_length=1)
     name: str = Field(min_length=1)
     owner: str = Field(min_length=1)
@@ -87,13 +98,6 @@ class SourceManifest(SourceModel):
     license: LicenseInfo
     update_cadence: str | None = None
     notes: str | None = None
-
-    @field_validator("manifest_version")
-    @classmethod
-    def validate_manifest_version(cls, value: str) -> str:
-        if value != "0.1.0":
-            raise ValueError("Unsupported SourceManifest version.")
-        return value
 
 
 class SourceRecordRef(SourceModel):
