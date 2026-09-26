@@ -3,10 +3,9 @@ from __future__ import annotations
 from copy import deepcopy
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Any, Final, TypeAlias
+from typing import Any, Final
 
 from jsonschema import Draft202012Validator, FormatChecker
-from jsonschema.exceptions import ValidationError as JsonSchemaValidationError
 
 from rejuv.models import InterventionEpisode
 from rejuv.releases import DataReleaseManifest
@@ -16,8 +15,8 @@ from rejuv.versioning import ContractKind
 
 VALIDATION_PROFILE_VERSION: Final[str] = "0.1.0"
 
-JSONValue: TypeAlias = dict[str, Any] | list[Any] | str | int | float | bool | None
-PathPart: TypeAlias = str | int
+type JSONValue = dict[str, Any] | list[Any] | str | int | float | bool | None
+type PathPart = str | int
 
 
 class ValidationLayer(StrEnum):
@@ -181,13 +180,13 @@ def validation_profile() -> dict[str, Any]:
             },
             {
                 "rule_id": "CHECKSUM_SHA256_ONLY",
-                "contract": "source_manifest",
+                "contract": "data_release_manifest",
                 "enforced_by": ["json_schema", "pydantic_reader"],
                 "description": "Checksum algorithm is sha256 in contract 0.1.0.",
             },
             {
                 "rule_id": "CHECKSUM_HEX_64",
-                "contract": "source_manifest",
+                "contract": "data_release_manifest",
                 "enforced_by": ["json_schema", "pydantic_reader"],
                 "description": "SHA-256 digest is exactly 64 hexadecimal characters.",
             },
@@ -350,7 +349,11 @@ def _release_semantic_issues(payload: dict[str, Any]) -> list[ValidationIssue]:
     artifacts = [item for item in payload.get("artifacts", []) if isinstance(item, dict)]
     derivations = [item for item in payload.get("derivations", []) if isinstance(item, dict)]
 
-    source_ids = [item.get("source_id") for item in sources if isinstance(item.get("source_id"), str)]
+    source_ids = [
+        item.get("source_id")
+        for item in sources
+        if isinstance(item.get("source_id"), str)
+    ]
     artifact_ids = [
         item.get("artifact_id") for item in artifacts if isinstance(item.get("artifact_id"), str)
     ]
@@ -451,7 +454,13 @@ def _release_semantic_issues(payload: dict[str, Any]) -> list[ValidationIssue]:
                     ValidationIssue(
                         "RELEASE_EPISODE_SCHEMA_MATCH",
                         ValidationLayer.SEMANTIC,
-                        ("derivations", derivation_index, "episodes", episode_index, "schema_version"),
+                        (
+                            "derivations",
+                            derivation_index,
+                            "episodes",
+                            episode_index,
+                            "schema_version",
+                        ),
                         "Episode schema_version does not match release manifest schema_version.",
                     )
                 )
