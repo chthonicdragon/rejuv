@@ -18,4 +18,6 @@ The project is pre-1.0; schema compatibility rules are defined in RFCs and docum
 - initial CI and collaboration templates;
 - typed SourceAdapter, source-rights, checksum, and release-manifest contracts;
 - deterministic raw-to-normalized lineage and synthetic adapter fixture;
-- frozen 0.1.0 contract readers, version dispatch, and explicit migration infrastructure.
+- frozen 0.1.0 contract readers, version dispatch, and explicit migration infrastructure;
+- versioned structural + semantic validation profiles with stable rule ids;
+- exported SourceManifest/DataReleaseManifest schemas and negative parity fixtures.
