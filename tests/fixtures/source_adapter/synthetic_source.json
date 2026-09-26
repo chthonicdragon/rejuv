@@ -1,0 +1,12 @@
+{
+  "records": [
+    {
+      "record_id": "synthetic-record-001",
+      "organism_id": "NCBITaxon:10090",
+      "organism_label": "Mus musculus",
+      "intervention_type": "other",
+      "outcome_name": "synthetic neutral outcome",
+      "effect_direction": "no_change"
+    }
+  ]
+}
