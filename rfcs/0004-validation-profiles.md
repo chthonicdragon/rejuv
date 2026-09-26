@@ -108,7 +108,9 @@ schemas/validation/v0_1_0/data_release_manifest.schema.json
 schemas/validation/v0_1_0/profile.json
 ```
 
-Hand edits are prohibited.
+Hand edits are prohibited. Once a validation profile version exists on the base branch,
+its generated schemas and `profile.json` are frozen; changing them requires a new
+validation profile version.
 
 ## Rule classification
 
