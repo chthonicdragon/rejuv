@@ -139,6 +139,24 @@ The first useful release is intentionally small:
 
 See [docs/roadmap.md](docs/roadmap.md).
 
+## Local verification
+
+After installing development dependencies:
+
+```bash
+python -m pip install -e ".[dev]"
+python scripts/verify.py
+```
+
+With uv:
+
+```bash
+uv sync --extra dev
+uv run python scripts/verify.py
+```
+
+The same command is used by CI when GitHub Actions runners are available.
+
 ## Non-goals
 
 Rejuv is **not**:
