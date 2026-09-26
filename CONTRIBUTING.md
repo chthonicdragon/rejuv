@@ -51,12 +51,21 @@ Python >= 3.12
 Recommended workflow:
 
 ```bash
-uv sync --all-groups
-uv run pytest
-uv run ruff check .
+uv sync --extra dev
+uv run python scripts/verify.py
 ```
 
 The project uses a `src/` layout.
+
+### Authoritative verification
+
+```bash
+python scripts/verify.py
+```
+
+is the single project verification entrypoint. It runs schema drift checks, public
+example/manifest validation, Ruff, mypy, and pytest. GitHub Actions is only another
+runner for this command; correctness must not depend on GitHub-hosted runners.
 
 ## Tests
 
