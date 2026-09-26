@@ -15,6 +15,8 @@ from rejuv.models import (
 )
 from rejuv.releases import DataReleaseManifest
 from rejuv.sources import SourceManifest
+import scripts.check_schema_contract as schema_contract
+
 from rejuv.validation import (
     VALIDATION_PROFILE_VERSION,
     strict_data_release_manifest_schema,
@@ -112,3 +114,24 @@ def test_validation_profile_artifact_paths_follow_profile_version() -> None:
     ]
     assert profile_paths
     assert all(path.parent == expected_prefix for path in profile_paths)
+
+
+def test_new_validation_profile_has_no_frozen_base_conflict(monkeypatch) -> None:
+    monkeypatch.setattr(schema_contract, "load_base_schema", lambda path: None)
+    assert schema_contract.check_validation_profile_immutability() == []
+
+
+def test_frozen_validation_profile_rejects_same_version_changes(monkeypatch) -> None:
+    def fake_base(path: Path):
+        current = schema_contract.load_json(schema_contract.ROOT / path)
+        if path.name == "profile.json":
+            changed = dict(current)
+            changed["profile_version"] = "tampered-same-version"
+            return changed
+        return current
+
+    monkeypatch.setattr(schema_contract, "load_base_schema", fake_base)
+    errors = schema_contract.check_validation_profile_immutability()
+
+    assert len(errors) == 1
+    assert "Frozen validation profile artifact changed" in errors[0]
