@@ -1,0 +1,26 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+.env
+.env.*
+!.env.example
+
+# Large or local data
+/data/raw/
+/data/cache/
+/data/derived/
+*.h5ad
+*.zarr/
+*.parquet
+
+# IDE / OS
+.DS_Store
+.idea/
+.vscode/
