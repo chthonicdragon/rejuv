@@ -13,7 +13,8 @@ from rejuv.releases import (
     fingerprint_episode,
     normalized_episode_ref,
 )
-from rejuv.sources import Checksum, SourceAdapter
+from rejuv.models import InterventionEpisode
+from rejuv.sources import Checksum, FetchedArtifact, SourceAdapter
 from tests.support.synthetic_adapter import SyntheticAdapter
 
 
@@ -21,7 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "tests" / "fixtures" / "source_adapter" / "synthetic_source.json"
 
 
-def run_synthetic_pipeline() -> tuple[SyntheticAdapter, object, list]:
+def run_synthetic_pipeline() -> tuple[SyntheticAdapter, FetchedArtifact, list[InterventionEpisode]]:
     adapter = SyntheticAdapter(FIXTURE)
     record = next(iter(adapter.discover()))
     artifact = adapter.fetch(record)
