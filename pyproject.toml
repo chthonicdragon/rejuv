@@ -13,13 +13,13 @@ authors = [
   { name = "Rejuv contributors" }
 ]
 dependencies = [
+  "jsonschema>=4.26,<5",
   "pydantic>=2.9,<3",
 ]
 
 [project.optional-dependencies]
 dev = [
   "pydantic==2.13.4",
-  "jsonschema==4.26.0",
   "pytest>=8.3",
   "ruff>=0.8",
   "mypy>=1.13",
