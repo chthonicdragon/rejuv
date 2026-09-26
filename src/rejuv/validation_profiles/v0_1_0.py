@@ -17,7 +17,7 @@ PROFILE_VERSION: Final[str] = "0.1.0"
 def _patch_http_urls(node: Any) -> None:
     if isinstance(node, dict):
         if node.get("format") == "uri":
-            node["pattern"] = "^https?://"
+            node["pattern"] = "^[Hh][Tt][Tt][Pp][Ss]?://"
         for value in node.values():
             _patch_http_urls(value)
     elif isinstance(node, list):
