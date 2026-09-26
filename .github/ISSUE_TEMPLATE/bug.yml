@@ -1,0 +1,35 @@
+name: Bug
+description: Report a reproducible software, schema, or benchmark defect.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Rejuv version / commit
+
+  - type: dropdown
+    id: impact
+    attributes:
+      label: Area
+      options:
+        - Core/schema
+        - Adapter/data
+        - Benchmark
+        - Provenance
+        - API/agent
+        - Documentation
