@@ -1,0 +1,62 @@
+{
+  "episode_id": "rejuv:episode:synthetic-001",
+  "schema_version": "0.1.0",
+  "study_id": "rejuv:study:synthetic-001",
+  "context": {
+    "organism": {
+      "id": "NCBITaxon:9606",
+      "label": "Homo sapiens",
+      "namespace": "NCBITaxon"
+    },
+    "tissue": {
+      "id": "UBERON:0000479",
+      "label": "tissue",
+      "namespace": "UBERON"
+    },
+    "sex": "not_reported",
+    "disease_states": []
+  },
+  "baseline": [],
+  "interventions": [
+    {
+      "intervention_id": "rejuv:intervention:synthetic-001",
+      "order": 1,
+      "type": "partial_reprogramming",
+      "start": {
+        "value": 0,
+        "unit": "day"
+      },
+      "evidence_ids": [
+        "rejuv:evidence:synthetic-001"
+      ]
+    }
+  ],
+  "follow_up": {
+    "value": 30,
+    "unit": "day"
+  },
+  "outcomes": [
+    {
+      "outcome_id": "rejuv:outcome:synthetic-001",
+      "category": "molecular",
+      "name": "synthetic example outcome",
+      "effect_direction": "unknown",
+      "origin": "model_generated",
+      "evidence_ids": [
+        "rejuv:evidence:missing"
+      ]
+    }
+  ],
+  "adverse_effects": [],
+  "evidence": [
+    {
+      "evidence_id": "rejuv:evidence:synthetic-001",
+      "source_type": "synthetic",
+      "note": "Synthetic example only; not scientific evidence."
+    }
+  ],
+  "provenance": {
+    "curation_level": "L0",
+    "extraction_method": "manual"
+  }
+}
