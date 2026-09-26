@@ -8,6 +8,7 @@ from rejuv.models import intervention_episode_json_schema
 from rejuv.releases import DataReleaseManifest
 from rejuv.sources import SourceManifest
 from rejuv.validation import (
+    VALIDATION_PROFILE_VERSION,
     strict_data_release_manifest_schema,
     strict_intervention_episode_schema,
     strict_source_manifest_schema,
@@ -16,19 +17,20 @@ from rejuv.validation import (
 
 
 ROOT = Path(__file__).resolve().parents[1]
+PROFILE_DIR = "v" + VALIDATION_PROFILE_VERSION.replace(".", "_")
 
 ARTIFACTS: dict[Path, dict[str, Any]] = {
     Path("schemas/intervention_episode.schema.json"): intervention_episode_json_schema(),
     Path("schemas/source_manifest.schema.json"): SourceManifest.model_json_schema(),
     Path("schemas/data_release_manifest.schema.json"): DataReleaseManifest.model_json_schema(),
-    Path("schemas/validation/v0_1_0/intervention_episode.schema.json"): (
+    Path(f"schemas/validation/{PROFILE_DIR}/intervention_episode.schema.json"): (
         strict_intervention_episode_schema()
     ),
-    Path("schemas/validation/v0_1_0/source_manifest.schema.json"): strict_source_manifest_schema(),
-    Path("schemas/validation/v0_1_0/data_release_manifest.schema.json"): (
+    Path(f"schemas/validation/{PROFILE_DIR}/source_manifest.schema.json"): strict_source_manifest_schema(),
+    Path(f"schemas/validation/{PROFILE_DIR}/data_release_manifest.schema.json"): (
         strict_data_release_manifest_schema()
     ),
-    Path("schemas/validation/v0_1_0/profile.json"): validation_profile(),
+    Path(f"schemas/validation/{PROFILE_DIR}/profile.json"): validation_profile(),
 }
 
 
