@@ -1,0 +1,30 @@
+name: RFC proposal
+description: Propose a change to protocol, schema, benchmark semantics, or governance.
+title: "[RFC] "
+labels: ["rfc"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What cannot be represented or evaluated correctly today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Compatibility and migration
+      description: What existing data, APIs, benchmarks, or agents would be affected?
