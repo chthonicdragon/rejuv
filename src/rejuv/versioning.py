@@ -4,7 +4,7 @@ from collections import deque
 from collections.abc import Callable, Mapping
 from copy import deepcopy
 from enum import StrEnum
-from typing import Any
+from typing import Any, cast
 
 from pydantic import BaseModel
 
@@ -18,6 +18,9 @@ from rejuv.sources import SOURCE_CONTRACT_VERSION
 
 type JSONMapping = Mapping[str, Any]
 type Migration = Callable[[dict[str, Any]], dict[str, Any]]
+type InterventionEpisodeRecord = InterventionEpisodeV010
+type SourceManifestRecord = SourceManifestV010
+type DataReleaseManifestRecord = DataReleaseManifestV010
 
 
 class ContractKind(StrEnum):
@@ -106,37 +109,40 @@ def _load(
     return reader.model_validate(_payload_copy(payload))
 
 
-def load_intervention_episode(payload: JSONMapping) -> InterventionEpisodeV010:
-    model = _load(
-        payload,
-        kind=ContractKind.INTERVENTION_EPISODE,
-        version_field="schema_version",
-        readers=_EPISODE_READERS,
+def load_intervention_episode(payload: JSONMapping) -> InterventionEpisodeRecord:
+    return cast(
+        InterventionEpisodeRecord,
+        _load(
+            payload,
+            kind=ContractKind.INTERVENTION_EPISODE,
+            version_field="schema_version",
+            readers=_EPISODE_READERS,
+        ),
     )
-    assert isinstance(model, InterventionEpisodeV010)
-    return model
 
 
-def load_source_manifest(payload: JSONMapping) -> SourceManifestV010:
-    model = _load(
-        payload,
-        kind=ContractKind.SOURCE_MANIFEST,
-        version_field="manifest_version",
-        readers=_SOURCE_MANIFEST_READERS,
+def load_source_manifest(payload: JSONMapping) -> SourceManifestRecord:
+    return cast(
+        SourceManifestRecord,
+        _load(
+            payload,
+            kind=ContractKind.SOURCE_MANIFEST,
+            version_field="manifest_version",
+            readers=_SOURCE_MANIFEST_READERS,
+        ),
     )
-    assert isinstance(model, SourceManifestV010)
-    return model
 
 
-def load_data_release_manifest(payload: JSONMapping) -> DataReleaseManifestV010:
-    model = _load(
-        payload,
-        kind=ContractKind.DATA_RELEASE_MANIFEST,
-        version_field="manifest_version",
-        readers=_RELEASE_MANIFEST_READERS,
+def load_data_release_manifest(payload: JSONMapping) -> DataReleaseManifestRecord:
+    return cast(
+        DataReleaseManifestRecord,
+        _load(
+            payload,
+            kind=ContractKind.DATA_RELEASE_MANIFEST,
+            version_field="manifest_version",
+            readers=_RELEASE_MANIFEST_READERS,
+        ),
     )
-    assert isinstance(model, DataReleaseManifestV010)
-    return model
 
 
 def current_version(kind: ContractKind) -> str:
