@@ -5,7 +5,7 @@ import hmac
 from dataclasses import dataclass
 from datetime import date, datetime
 from enum import StrEnum
-from typing import Generic, Iterable, Protocol, Sequence, TypeVar, runtime_checkable
+from typing import Iterable, Protocol, Sequence, TypeVar, runtime_checkable
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
 
@@ -154,7 +154,7 @@ ParsedT = TypeVar("ParsedT")
 
 
 @runtime_checkable
-class SourceAdapter(Protocol, Generic[ParsedT]):
+class SourceAdapter(Protocol[ParsedT]):
     adapter_id: str
     adapter_version: str
 
