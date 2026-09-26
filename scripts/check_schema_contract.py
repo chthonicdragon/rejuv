@@ -9,8 +9,8 @@ from pathlib import Path
 from typing import Any
 
 from rejuv.models import CURRENT_SCHEMA_VERSION, intervention_episode_json_schema
-from rejuv.releases import DataReleaseManifest
-from rejuv.sources import SourceManifest
+from rejuv.releases import DataReleaseManifest, RELEASE_MANIFEST_VERSION
+from rejuv.sources import SOURCE_CONTRACT_VERSION, SourceManifest
 from rejuv.validation import (
     VALIDATION_PROFILE_VERSION,
     strict_data_release_manifest_schema,
@@ -57,15 +57,11 @@ def parse_semver(value: str) -> tuple[int, int, int]:
     return int(major), int(minor), int(patch)
 
 
-def schema_version(schema: dict[str, Any]) -> str:
-    value = schema.get("x-rejuv-schema-version")
+def contract_version(schema: dict[str, Any], metadata_key: str) -> str:
+    value = schema.get(metadata_key)
     if isinstance(value, str):
         return value
-    property_schema = schema.get("properties", {}).get("schema_version", {})
-    const = property_schema.get("const")
-    if isinstance(const, str):
-        return const
-    raise ValueError("JSON Schema does not expose a Rejuv schema version.")
+    raise ValueError(f"JSON Schema does not expose contract metadata {metadata_key!r}.")
 
 
 def load_base_schema(relative_path: Path) -> dict[str, Any] | None:
@@ -105,39 +101,60 @@ def check_generated_artifacts() -> list[str]:
     return errors
 
 
-def check_intervention_schema_version() -> list[str]:
-    relative_path = Path("schemas/intervention_episode.schema.json")
-    checked_in = load_json(ROOT / relative_path)
-    current_version = schema_version(checked_in)
+def check_public_schema_versions() -> list[str]:
+    contracts = (
+        (
+            Path("schemas/intervention_episode.schema.json"),
+            "x-rejuv-schema-version",
+            CURRENT_SCHEMA_VERSION,
+        ),
+        (
+            Path("schemas/source_manifest.schema.json"),
+            "x-rejuv-source-contract-version",
+            SOURCE_CONTRACT_VERSION,
+        ),
+        (
+            Path("schemas/data_release_manifest.schema.json"),
+            "x-rejuv-release-manifest-version",
+            RELEASE_MANIFEST_VERSION,
+        ),
+    )
     errors: list[str] = []
 
-    if current_version != CURRENT_SCHEMA_VERSION:
-        errors.append(
-            "Schema metadata and CURRENT_SCHEMA_VERSION disagree: "
-            f"{current_version!r} != {CURRENT_SCHEMA_VERSION!r}."
-        )
+    for relative_path, metadata_key, expected_version in contracts:
+        checked_in = load_json(ROOT / relative_path)
+        current_version = contract_version(checked_in, metadata_key)
 
-    try:
-        parse_semver(current_version)
-    except ValueError as exc:
-        errors.append(str(exc))
-        return errors
+        if current_version != expected_version:
+            errors.append(
+                f"{relative_path} metadata and current contract version disagree: "
+                f"{current_version!r} != {expected_version!r}."
+            )
 
-    base_schema = load_base_schema(relative_path)
-    if base_schema is not None and canonical_json(base_schema) != canonical_json(checked_in):
-        base_version = schema_version(base_schema)
+        try:
+            parse_semver(current_version)
+        except ValueError as exc:
+            errors.append(str(exc))
+            continue
+
+        base_schema = load_base_schema(relative_path)
+        if base_schema is None or canonical_json(base_schema) == canonical_json(checked_in):
+            continue
+
+        base_version = contract_version(base_schema, metadata_key)
         try:
             old = parse_semver(base_version)
             new = parse_semver(current_version)
         except ValueError as exc:
             errors.append(str(exc))
-            return errors
+            continue
 
         if new <= old:
             errors.append(
-                "The record schema changed but schema_version was not increased: "
+                f"Public schema {relative_path} changed without a contract-version bump: "
                 f"{base_version} -> {current_version}."
             )
+
     return errors
 
 
@@ -210,7 +227,7 @@ def check_validation_profile_immutability() -> list[str]:
 def main() -> int:
     errors = [
         *check_generated_artifacts(),
-        *check_intervention_schema_version(),
+        *check_public_schema_versions(),
         *check_validation_profile_version(),
         *check_validation_profile_immutability(),
     ]
