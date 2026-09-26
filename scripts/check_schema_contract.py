@@ -21,20 +21,21 @@ from rejuv.validation import (
 
 
 ROOT = Path(__file__).resolve().parents[1]
+PROFILE_DIR = "v" + VALIDATION_PROFILE_VERSION.replace(".", "_")
 SEMVER_RE = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")
 
 GENERATED_ARTIFACTS: dict[Path, dict[str, Any]] = {
     Path("schemas/intervention_episode.schema.json"): intervention_episode_json_schema(),
     Path("schemas/source_manifest.schema.json"): SourceManifest.model_json_schema(),
     Path("schemas/data_release_manifest.schema.json"): DataReleaseManifest.model_json_schema(),
-    Path("schemas/validation/v0_1_0/intervention_episode.schema.json"): (
+    Path(f"schemas/validation/{PROFILE_DIR}/intervention_episode.schema.json"): (
         strict_intervention_episode_schema()
     ),
-    Path("schemas/validation/v0_1_0/source_manifest.schema.json"): strict_source_manifest_schema(),
-    Path("schemas/validation/v0_1_0/data_release_manifest.schema.json"): (
+    Path(f"schemas/validation/{PROFILE_DIR}/source_manifest.schema.json"): strict_source_manifest_schema(),
+    Path(f"schemas/validation/{PROFILE_DIR}/data_release_manifest.schema.json"): (
         strict_data_release_manifest_schema()
     ),
-    Path("schemas/validation/v0_1_0/profile.json"): validation_profile(),
+    Path(f"schemas/validation/{PROFILE_DIR}/profile.json"): validation_profile(),
 }
 
 
@@ -150,11 +151,40 @@ def check_validation_profile_version() -> list[str]:
     return []
 
 
+
+def check_validation_profile_immutability() -> list[str]:
+    """Published profile artifacts are immutable under the same profile version."""
+    profile_paths = [
+        path for path in GENERATED_ARTIFACTS if path.parts[:2] == ("schemas", "validation")
+    ]
+    existing_in_base: list[tuple[Path, dict[str, Any]]] = []
+
+    for relative_path in profile_paths:
+        base_artifact = load_base_schema(relative_path)
+        if base_artifact is not None:
+            existing_in_base.append((relative_path, base_artifact))
+
+    if not existing_in_base:
+        # New profile version: there is no frozen profile with this version in base.
+        return []
+
+    errors: list[str] = []
+    for relative_path, base_artifact in existing_in_base:
+        current = load_json(ROOT / relative_path)
+        if canonical_json(base_artifact) != canonical_json(current):
+            errors.append(
+                "Frozen validation profile artifact changed without a new profile version: "
+                f"{relative_path}. Add a new validation profile version instead of editing "
+                f"{VALIDATION_PROFILE_VERSION}."
+            )
+    return errors
+
 def main() -> int:
     errors = [
         *check_generated_artifacts(),
         *check_intervention_schema_version(),
         *check_validation_profile_version(),
+        *check_validation_profile_immutability(),
     ]
     if errors:
         for error in errors:
