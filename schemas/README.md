@@ -8,13 +8,28 @@ During pre-1.0 development, the authoritative implementation is the typed Pydant
 src/rejuv/models.py
 ```
 
-Language-neutral JSON Schema artifacts are generated with:
+The language-neutral JSON Schema artifact is generated with:
 
 ```bash
 python scripts/export_schema.py
 ```
 
-Generated schemas will be committed once the first schema-consistency check is enabled. Do not hand-edit generated JSON Schema files.
+The generated artifact is committed at:
+
+```text
+schemas/intervention_episode.schema.json
+```
+
+Do not hand-edit it.
+
+## Reproducibility
+
+Schema generation is part of the public contract. The development environment pins the Pydantic generator version used by CI so a dependency upgrade cannot silently rewrite the checked-in schema.
+
+CI performs two independent checks:
+
+1. the checked-in JSON Schema must equal the schema generated from the current Pydantic model;
+2. on pull requests, if the generated schema differs from the base branch, `schema_version` must increase monotonically.
 
 ## Versioning
 
@@ -26,4 +41,12 @@ schema:   0.x.y
 data:     YYYY.MM
 ```
 
-Breaking schema semantics require an RFC.
+RFC-0001 currently defines:
+
+- patch: constraints/docs that do not change the semantics of valid records;
+- minor: backward-compatible schema capability;
+- major: breaking schema semantics.
+
+A breaking semantic change also requires an RFC and migration notes.
+
+Compatibility fixtures under `tests/fixtures/schema_<version>/` protect previously published record shapes. Do not delete an old fixture simply to make a new schema pass.
