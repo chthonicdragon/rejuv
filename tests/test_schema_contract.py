@@ -101,3 +101,14 @@ def test_0_1_0_compatibility_fixture_remains_valid() -> None:
     InterventionEpisode.model_validate(payload)
     schema = load_json(ROOT / "schemas" / "intervention_episode.schema.json")
     Draft202012Validator(schema).validate(payload)
+
+
+def test_validation_profile_artifact_paths_follow_profile_version() -> None:
+    profile_dir = "v" + VALIDATION_PROFILE_VERSION.replace(".", "_")
+    expected_prefix = Path("schemas") / "validation" / profile_dir
+
+    profile_paths = [
+        path for path in ARTIFACTS if path.parts[:2] == ("schemas", "validation")
+    ]
+    assert profile_paths
+    assert all(path.parent == expected_prefix for path in profile_paths)
