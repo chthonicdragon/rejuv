@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from datetime import date
 from enum import StrEnum
-from typing import Final, Iterable, Literal, Protocol, Sequence, TypeVar, runtime_checkable
+from typing import Final, Literal, Protocol, TypeVar, runtime_checkable
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, HttpUrl, field_validator
 
