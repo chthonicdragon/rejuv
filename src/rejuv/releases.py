@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import json
 from datetime import datetime
-from typing import Any
+from typing import Any, Final, Literal
 
-from pydantic import Field, model_validator
+from pydantic import ConfigDict, Field, model_validator
 
 from rejuv.models import CURRENT_SCHEMA_VERSION, InterventionEpisode
 from rejuv.sources import Checksum, SourceArtifact, SourceManifest, SourceModel
+
+
+RELEASE_MANIFEST_VERSION: Final[str] = "0.1.0"
 
 
 def canonical_json_bytes(payload: Any) -> bytes:
@@ -52,7 +55,15 @@ class DerivationRecord(SourceModel):
 
 
 class DataReleaseManifest(SourceModel):
-    manifest_version: str = "0.1.0"
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "x-rejuv-release-manifest-version": RELEASE_MANIFEST_VERSION,
+        },
+    )
+
+    manifest_version: Literal["0.1.0"] = "0.1.0"
     release_id: str = Field(min_length=1)
     release_version: str = Field(min_length=1)
     created_at: datetime
