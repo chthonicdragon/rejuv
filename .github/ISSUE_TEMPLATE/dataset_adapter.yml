@@ -1,0 +1,44 @@
+name: Dataset adapter
+description: Propose or implement a new biological data source adapter.
+title: "[adapter] "
+labels: ["data", "adapter"]
+body:
+  - type: input
+    id: source
+    attributes:
+      label: Source
+      description: Dataset/database name and canonical URL or accession system.
+    validations:
+      required: true
+
+  - type: textarea
+    id: value
+    attributes:
+      label: Why it belongs in Rejuv
+      description: What intervention evidence does this source add?
+    validations:
+      required: true
+
+  - type: textarea
+    id: license
+    attributes:
+      label: License and redistribution
+      description: State the source license and any restrictions you have verified.
+    validations:
+      required: true
+
+  - type: textarea
+    id: mapping
+    attributes:
+      label: Proposed mapping
+      description: Map source concepts to Study, BiologicalContext, InterventionEpisode, Outcome, and EvidenceReference.
+
+  - type: checkboxes
+    id: integrity
+    attributes:
+      label: Integrity
+      options:
+        - label: I will not infer missing experimental values.
+          required: true
+        - label: AI-generated extraction will be labeled as such.
+          required: true
