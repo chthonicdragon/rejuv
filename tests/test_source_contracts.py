@@ -121,3 +121,62 @@ def test_release_manifest_rejects_unknown_artifact_reference() -> None:
             ],
             episode_count=1,
         )
+
+
+def test_release_manifest_rejects_source_version_mismatch() -> None:
+    adapter, artifact, episodes = run_synthetic_pipeline()
+    episode = episodes[0]
+    mismatched_artifact = artifact.metadata.model_copy(update={"source_version": "other-version"})
+
+    with pytest.raises(ValidationError, match="source_version does not match"):
+        DataReleaseManifest(
+            release_id="rejuv:release:version-mismatch",
+            release_version="2026.09-test",
+            created_at=datetime(2026, 9, 26, tzinfo=UTC),
+            software_version="0.1.0",
+            code_commit="0000000",
+            sources=[adapter.source_manifest()],
+            artifacts=[mismatched_artifact],
+            derivations=[
+                DerivationRecord(
+                    derivation_id="rejuv:derivation:version-mismatch",
+                    source_artifact_id=mismatched_artifact.artifact_id,
+                    source_record_id=episode.provenance.source_record_id or "",
+                    adapter=AdapterSnapshot(
+                        adapter_id=adapter.adapter_id,
+                        adapter_version=adapter.adapter_version,
+                    ),
+                    episodes=[normalized_episode_ref(episode)],
+                )
+            ],
+            episode_count=1,
+        )
+
+
+def test_release_manifest_rejects_record_lineage_mismatch() -> None:
+    adapter, artifact, episodes = run_synthetic_pipeline()
+    episode = episodes[0]
+
+    with pytest.raises(ValidationError, match="source_record_id does not match"):
+        DataReleaseManifest(
+            release_id="rejuv:release:record-mismatch",
+            release_version="2026.09-test",
+            created_at=datetime(2026, 9, 26, tzinfo=UTC),
+            software_version="0.1.0",
+            code_commit="0000000",
+            sources=[adapter.source_manifest()],
+            artifacts=[artifact.metadata],
+            derivations=[
+                DerivationRecord(
+                    derivation_id="rejuv:derivation:record-mismatch",
+                    source_artifact_id=artifact.metadata.artifact_id,
+                    source_record_id="wrong-record",
+                    adapter=AdapterSnapshot(
+                        adapter_id=adapter.adapter_id,
+                        adapter_version=adapter.adapter_version,
+                    ),
+                    episodes=[normalized_episode_ref(episode)],
+                )
+            ],
+            episode_count=1,
+        )
