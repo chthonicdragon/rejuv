@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from copy import deepcopy
 import json
+from copy import deepcopy
 from pathlib import Path
 from typing import Literal
 
@@ -208,3 +208,16 @@ def test_historical_reader_is_independent_from_current_writer_alias(monkeypatch)
 
     loaded = load_intervention_episode(payload)
     assert type(loaded) is InterventionEpisodeV010
+
+
+def test_loader_dispatch_can_accept_a_future_registered_reader(monkeypatch) -> None:
+    import rejuv.versioning as versioning
+
+    class TestV020(BaseModel):
+        model_config = ConfigDict(extra="forbid")
+        schema_version: Literal["test-0.2.0"]
+
+    monkeypatch.setitem(versioning._EPISODE_READERS, "test-0.2.0", TestV020)
+
+    loaded = load_intervention_episode({"schema_version": "test-0.2.0"})
+    assert type(loaded) is TestV020
