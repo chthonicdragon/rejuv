@@ -28,7 +28,7 @@ before real corpus ingestion.
 
 P0 blockers:
 
-- [ ] #10 Python/JSON semantic contract;
+- [x] #10 structural/semantic validation contract;
 - [ ] #11 artifact vs logical-record provenance topology;
 - [ ] #12 study/arm/contrast/statistical semantics;
 - [x] #13 historical schema readers and migrations;
@@ -38,7 +38,7 @@ P0 blockers:
 Supporting work:
 
 - [ ] #18 units/regimen/strain/ontology normalization;
-- [ ] #19 one local verification command independent of GitHub Actions.
+- [x] #19 one local verification command independent of GitHub Actions.
 
 See [foundation-audit-2026-09-26.md](foundation-audit-2026-09-26.md).
 
