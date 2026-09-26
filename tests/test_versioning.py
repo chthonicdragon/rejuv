@@ -23,7 +23,6 @@ from rejuv.versioning import (
     load_source_manifest,
     migrate_intervention_episode,
     migrate_payload,
-    register_migration,
 )
 
 
@@ -117,7 +116,7 @@ def test_missing_migration_path_fails_instead_of_guessing() -> None:
         migrate_intervention_episode(payload, target_version="0.2.0")
 
 
-def test_explicit_migration_registry_supports_future_chains() -> None:
+def test_explicit_migration_registry_supports_future_chains(monkeypatch) -> None:
     def to_test_020(payload: dict) -> dict:
         payload["schema_version"] = "test-0.2.0"
         payload["migration_marker"] = "first"
@@ -128,16 +127,16 @@ def test_explicit_migration_registry_supports_future_chains() -> None:
         payload["migration_marker"] += "-second"
         return payload
 
-    register_migration(
-        ContractKind.INTERVENTION_EPISODE,
-        "0.1.0",
-        "test-0.2.0",
+    import rejuv.versioning as versioning
+
+    monkeypatch.setitem(
+        versioning._MIGRATIONS[ContractKind.INTERVENTION_EPISODE],
+        ("0.1.0", "test-0.2.0"),
         to_test_020,
     )
-    register_migration(
-        ContractKind.INTERVENTION_EPISODE,
-        "test-0.2.0",
-        "test-0.3.0",
+    monkeypatch.setitem(
+        versioning._MIGRATIONS[ContractKind.INTERVENTION_EPISODE],
+        ("test-0.2.0", "test-0.3.0"),
         to_test_030,
     )
 
