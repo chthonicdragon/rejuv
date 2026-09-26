@@ -5,21 +5,36 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 
 from rejuv.models import InterventionEpisode
 from rejuv.releases import DataReleaseManifest
 from rejuv.sources import SourceManifest
+from rejuv.validation import (
+    validate_data_release_manifest,
+    validate_intervention_episode,
+    validate_source_manifest,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
-INTERVENTION_SCHEMA = ROOT / "schemas" / "intervention_episode.schema.json"
 
-EXAMPLES: tuple[tuple[Path, type[Any]], ...] = (
-    (ROOT / "examples" / "intervention_episode.synthetic.json", InterventionEpisode),
-    (ROOT / "examples" / "source_manifest.synthetic.json", SourceManifest),
-    (ROOT / "examples" / "data_release_manifest.synthetic.json", DataReleaseManifest),
+EXAMPLES: tuple[tuple[Path, type[Any], Any], ...] = (
+    (
+        ROOT / "examples" / "intervention_episode.synthetic.json",
+        InterventionEpisode,
+        validate_intervention_episode,
+    ),
+    (
+        ROOT / "examples" / "source_manifest.synthetic.json",
+        SourceManifest,
+        validate_source_manifest,
+    ),
+    (
+        ROOT / "examples" / "data_release_manifest.synthetic.json",
+        DataReleaseManifest,
+        validate_data_release_manifest,
+    ),
 )
 
 
@@ -30,7 +45,7 @@ def load_json(path: Path) -> Any:
 def validate_examples() -> list[str]:
     errors: list[str] = []
 
-    for path, model in EXAMPLES:
+    for path, model, validator in EXAMPLES:
         try:
             payload = load_json(path)
         except (OSError, json.JSONDecodeError) as exc:
@@ -41,16 +56,11 @@ def validate_examples() -> list[str]:
             model.model_validate(payload)
         except ValidationError as exc:
             errors.append(f"{path.relative_to(ROOT)}: Pydantic validation failed: {exc}")
-            continue
 
-        if model is InterventionEpisode:
-            try:
-                schema = load_json(INTERVENTION_SCHEMA)
-                Draft202012Validator(schema).validate(payload)
-            except Exception as exc:
-                errors.append(
-                    f"{path.relative_to(ROOT)}: JSON Schema validation failed: {exc}"
-                )
+        report = validator(payload)
+        if not report.valid:
+            details = "; ".join(f"{issue.code}@{issue.path}" for issue in report.issues)
+            errors.append(f"{path.relative_to(ROOT)}: validation profile failed: {details}")
 
     return errors
 
