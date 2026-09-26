@@ -125,10 +125,25 @@ It must not autonomously prescribe, dose, or execute interventions on humans.
 
 Any future physical-lab integration requires explicit safety, authorization, containment, and review layers outside the generic experiment-selection loop.
 
+## Required verification
+
+Before declaring a change complete, run:
+
+```bash
+python scripts/verify.py
+```
+
+This command is the authoritative local verification contract. GitHub Actions, when
+available, must call the same command rather than duplicating project checks.
+
+Do not claim verification passed if the command was not actually executed. If the
+environment prevents execution, report that limitation explicitly.
+
 ## Definition of done
 
 A change is done when:
 
+- `python scripts/verify.py` passes, or an execution-environment limitation is explicitly documented;
 - code works;
 - tests cover the meaningful failure mode;
 - provenance remains intact;
