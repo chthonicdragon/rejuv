@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import subprocess
+from collections.abc import Sequence
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence
 
 
 ROOT = Path(__file__).resolve().parents[1]
