@@ -21,8 +21,10 @@ from rejuv.versioning import (
     load_data_release_manifest,
     load_intervention_episode,
     load_source_manifest,
+    migrate_data_release_manifest,
     migrate_intervention_episode,
     migrate_payload,
+    migrate_source_manifest,
 )
 
 
@@ -151,3 +153,44 @@ def test_explicit_migration_registry_supports_future_chains(monkeypatch) -> None
     assert migrated["migration_marker"] == "first-second"
     assert original["schema_version"] == "0.1.0"
     assert "migration_marker" not in original
+
+
+def test_same_version_manifest_migrations_validate_and_copy() -> None:
+    source_payload = load_json(SOURCE_FIXTURE)
+    release_payload = load_json(RELEASE_FIXTURE)
+
+    migrated_source = migrate_source_manifest(source_payload)
+    migrated_release = migrate_data_release_manifest(release_payload)
+
+    assert migrated_source == source_payload
+    assert migrated_release == release_payload
+    assert migrated_source is not source_payload
+    assert migrated_release is not release_payload
+
+
+def test_migration_rejects_invalid_historical_payload_before_transforming() -> None:
+    payload = load_json(EPISODE_FIXTURE)
+    payload["interventions"] = []
+
+    with pytest.raises(Exception):
+        migrate_intervention_episode(payload)
+
+
+def test_historical_reader_is_independent_from_current_writer_alias(monkeypatch) -> None:
+    import rejuv.models as current_models
+
+    payload = load_json(EPISODE_FIXTURE)
+
+    class FutureWriterPlaceholder:
+        @classmethod
+        def model_validate(cls, value):
+            raise AssertionError("historical loader must not call the current writer")
+
+    monkeypatch.setattr(
+        current_models,
+        "InterventionEpisode",
+        FutureWriterPlaceholder,
+    )
+
+    loaded = load_intervention_episode(payload)
+    assert type(loaded) is InterventionEpisodeV010
