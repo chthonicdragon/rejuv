@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from copy import deepcopy
 import json
+from copy import deepcopy
 from pathlib import Path
 
 import pytest
@@ -206,3 +206,24 @@ def test_duplicate_episode_ids_match_pydantic_rejection() -> None:
     assert not report.semantic_valid
     with pytest.raises(ValidationError):
         DataReleaseManifest.model_validate(payload)
+
+
+def test_semantic_validation_does_not_crash_on_malformed_structures() -> None:
+    release_report = validate_data_release_manifest(
+        {
+            "sources": [{"source_id": []}],
+            "artifacts": [{"source_id": [], "artifact_id": []}],
+            "derivations": [{"source_artifact_id": [], "episodes": {}}],
+            "episode_count": 0,
+        }
+    )
+    episode_report = validate_intervention_episode(
+        {
+            "interventions": {"not": "an array"},
+            "evidence": {"not": "an array"},
+            "outcomes": [{"evidence_ids": {"not": "an array"}}],
+        }
+    )
+
+    assert not release_report.structural_valid
+    assert not episode_report.structural_valid
