@@ -27,6 +27,11 @@ Open an RFC when a change:
 
 Small implementation fixes do not require an RFC.
 
+For a new serialized contract version, do not modify an older frozen
+`src/rejuv/contracts/vX_Y_Z/` package. Add a new version package, update the current
+writer alias and version registry, and retain historical-reader tests. See
+[docs/versioning.md](docs/versioning.md).
+
 ## Scientific integrity rules
 
 Contributors and agents must:
