@@ -9,12 +9,29 @@ from pathlib import Path
 from typing import Any
 
 from rejuv.models import CURRENT_SCHEMA_VERSION, intervention_episode_json_schema
+from rejuv.releases import DataReleaseManifest
+from rejuv.sources import SourceManifest
+from rejuv.validation import (
+    VALIDATION_PROFILE_VERSION,
+    strict_data_release_manifest_schema,
+    strict_intervention_episode_schema,
+    strict_source_manifest_schema,
+    validation_profile,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SCHEMA_RELATIVE = Path("schemas/intervention_episode.schema.json")
-SCHEMA_PATH = ROOT / SCHEMA_RELATIVE
-SEMVER_RE = re.compile(r"^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$")
+SEMVER_RE = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")
+
+GENERATED_ARTIFACTS: dict[Path, dict[str, Any]] = {
+    Path("schemas/intervention_episode.schema.json"): intervention_episode_json_schema(),
+    Path("schemas/source_manifest.schema.json"): SourceManifest.model_json_schema(),
+    Path("schemas/data_release_manifest.schema.json"): DataReleaseManifest.model_json_schema(),
+    Path("schemas/validation/v0_1_0/intervention_episode.schema.json"): strict_intervention_episode_schema(),
+    Path("schemas/validation/v0_1_0/source_manifest.schema.json"): strict_source_manifest_schema(),
+    Path("schemas/validation/v0_1_0/data_release_manifest.schema.json"): strict_data_release_manifest_schema(),
+    Path("schemas/validation/v0_1_0/profile.json"): validation_profile(),
+}
 
 
 def canonical_json(payload: dict[str, Any]) -> str:
@@ -37,24 +54,21 @@ def schema_version(schema: dict[str, Any]) -> str:
     value = schema.get("x-rejuv-schema-version")
     if isinstance(value, str):
         return value
-
     property_schema = schema.get("properties", {}).get("schema_version", {})
     const = property_schema.get("const")
     if isinstance(const, str):
         return const
-
     raise ValueError("JSON Schema does not expose a Rejuv schema version.")
 
 
-def load_base_schema() -> dict[str, Any] | None:
-    """Load the base-branch schema during a GitHub pull request, if one exists."""
+def load_base_schema(relative_path: Path) -> dict[str, Any] | None:
     base_ref = os.environ.get("GITHUB_BASE_REF")
     if not base_ref:
         return None
 
     for git_ref in (f"origin/{base_ref}", base_ref):
         result = subprocess.run(
-            ["git", "show", f"{git_ref}:{SCHEMA_RELATIVE.as_posix()}"],
+            ["git", "show", f"{git_ref}:{relative_path.as_posix()}"],
             cwd=ROOT,
             check=False,
             capture_output=True,
@@ -62,67 +76,91 @@ def load_base_schema() -> dict[str, Any] | None:
         )
         if result.returncode == 0:
             return json.loads(result.stdout)
-
-    # The first PR that introduces the generated artifact has no base schema.
     return None
 
 
-def main() -> int:
-    if not SCHEMA_PATH.exists():
-        print(
-            f"Missing generated schema: {SCHEMA_RELATIVE}. "
-            "Run `python scripts/export_schema.py` and commit the result.",
-            file=sys.stderr,
-        )
-        return 1
+def check_generated_artifacts() -> list[str]:
+    errors: list[str] = []
+    for relative_path, generated in GENERATED_ARTIFACTS.items():
+        path = ROOT / relative_path
+        if not path.exists():
+            errors.append(
+                f"Missing generated artifact: {relative_path}. "
+                "Run `python scripts/export_schema.py`."
+            )
+            continue
+        checked_in = load_json(path)
+        if canonical_json(checked_in) != canonical_json(generated):
+            errors.append(
+                f"Generated artifact differs from checked-in file: {relative_path}. "
+                "Run `python scripts/export_schema.py`."
+            )
+    return errors
 
-    checked_in = load_json(SCHEMA_PATH)
-    generated = intervention_episode_json_schema()
 
-    if canonical_json(checked_in) != canonical_json(generated):
-        print(
-            "Generated JSON Schema differs from the checked-in artifact. "
-            "Run `python scripts/export_schema.py`, review the diff, and commit it.",
-            file=sys.stderr,
-        )
-        return 1
-
+def check_intervention_schema_version() -> list[str]:
+    relative_path = Path("schemas/intervention_episode.schema.json")
+    checked_in = load_json(ROOT / relative_path)
     current_version = schema_version(checked_in)
+    errors: list[str] = []
+
     if current_version != CURRENT_SCHEMA_VERSION:
-        print(
+        errors.append(
             "Schema metadata and CURRENT_SCHEMA_VERSION disagree: "
-            f"{current_version!r} != {CURRENT_SCHEMA_VERSION!r}.",
-            file=sys.stderr,
+            f"{current_version!r} != {CURRENT_SCHEMA_VERSION!r}."
         )
-        return 1
 
     try:
         parse_semver(current_version)
     except ValueError as exc:
-        print(str(exc), file=sys.stderr)
-        return 1
+        errors.append(str(exc))
+        return errors
 
-    base_schema = load_base_schema()
+    base_schema = load_base_schema(relative_path)
     if base_schema is not None and canonical_json(base_schema) != canonical_json(checked_in):
         base_version = schema_version(base_schema)
-
         try:
             old = parse_semver(base_version)
             new = parse_semver(current_version)
         except ValueError as exc:
-            print(str(exc), file=sys.stderr)
-            return 1
+            errors.append(str(exc))
+            return errors
 
         if new <= old:
-            print(
-                "The generated schema changed but schema_version was not increased: "
-                f"{base_version} -> {current_version}. "
-                "Bump the schema version according to RFC-0001 and document compatibility.",
-                file=sys.stderr,
+            errors.append(
+                "The record schema changed but schema_version was not increased: "
+                f"{base_version} -> {current_version}."
             )
-            return 1
+    return errors
 
-    print(f"Schema contract OK: {current_version}")
+
+def check_validation_profile_version() -> list[str]:
+    profile = validation_profile()
+    version = profile.get("profile_version")
+    if version != VALIDATION_PROFILE_VERSION:
+        return ["Validation profile metadata disagrees with VALIDATION_PROFILE_VERSION."]
+    try:
+        parse_semver(VALIDATION_PROFILE_VERSION)
+    except ValueError as exc:
+        return [str(exc)]
+    return []
+
+
+def main() -> int:
+    errors = [
+        *check_generated_artifacts(),
+        *check_intervention_schema_version(),
+        *check_validation_profile_version(),
+    ]
+    if errors:
+        for error in errors:
+            print(error, file=sys.stderr)
+        return 1
+
+    print(
+        "Schema artifacts OK: "
+        f"record={CURRENT_SCHEMA_VERSION}, validation={VALIDATION_PROFILE_VERSION}"
+    )
     return 0
 
 
