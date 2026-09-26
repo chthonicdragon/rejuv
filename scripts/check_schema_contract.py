@@ -31,7 +31,9 @@ GENERATED_ARTIFACTS: dict[Path, dict[str, Any]] = {
     Path(f"schemas/validation/{PROFILE_DIR}/intervention_episode.schema.json"): (
         strict_intervention_episode_schema()
     ),
-    Path(f"schemas/validation/{PROFILE_DIR}/source_manifest.schema.json"): strict_source_manifest_schema(),
+    Path(f"schemas/validation/{PROFILE_DIR}/source_manifest.schema.json"): (
+        strict_source_manifest_schema()
+    ),
     Path(f"schemas/validation/{PROFILE_DIR}/data_release_manifest.schema.json"): (
         strict_data_release_manifest_schema()
     ),
