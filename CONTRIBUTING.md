@@ -32,6 +32,11 @@ For a new serialized contract version, do not modify an older frozen
 writer alias and version registry, and retain historical-reader tests. See
 [docs/versioning.md](docs/versioning.md).
 
+Validation-profile changes follow the same immutability principle. Published profiles
+under `src/rejuv/validation_profiles/` are frozen. A new validity interpretation gets a
+new profile version plus negative parity fixtures. See
+[docs/validation.md](docs/validation.md).
+
 ## Scientific integrity rules
 
 Contributors and agents must:
