@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime
 from typing import Any, Final, Literal
 
-from pydantic import ConfigDict, Field, model_validator
+from pydantic import AwareDatetime, ConfigDict, Field, model_validator
 
 from rejuv.models import CURRENT_SCHEMA_VERSION, InterventionEpisode
 from rejuv.sources import Checksum, SourceArtifact, SourceManifest, SourceModel
@@ -66,7 +65,7 @@ class DataReleaseManifest(SourceModel):
     manifest_version: Literal["0.1.0"] = "0.1.0"
     release_id: str = Field(min_length=1)
     release_version: str = Field(min_length=1)
-    created_at: datetime
+    created_at: AwareDatetime
     schema_version: str = CURRENT_SCHEMA_VERSION
     software_version: str = Field(min_length=1)
     code_commit: str = Field(min_length=7)
@@ -87,23 +86,50 @@ class DataReleaseManifest(SourceModel):
         if len(artifact_ids) != len(set(artifact_ids)):
             raise ValueError("Artifact ids must be unique within a release manifest.")
 
-        known_sources = set(source_ids)
+        source_by_id = {source.source_id: source for source in self.sources}
+        artifact_by_id = {artifact.artifact_id: artifact for artifact in self.artifacts}
+
         for artifact in self.artifacts:
-            if artifact.source_id not in known_sources:
+            source = source_by_id.get(artifact.source_id)
+            if source is None:
                 raise ValueError(
                     f"Artifact {artifact.artifact_id!r} references unknown source "
                     f"{artifact.source_id!r}."
                 )
 
-        known_artifacts = set(artifact_ids)
+            snapshot_version = source.snapshot.version
+            if (
+                artifact.source_version is not None
+                and snapshot_version is not None
+                and artifact.source_version != snapshot_version
+            ):
+                raise ValueError(
+                    f"Artifact {artifact.artifact_id!r} source_version does not match "
+                    f"source snapshot version {snapshot_version!r}."
+                )
+
         episode_ids: list[str] = []
         for derivation in self.derivations:
-            if derivation.source_artifact_id not in known_artifacts:
+            artifact = artifact_by_id.get(derivation.source_artifact_id)
+            if artifact is None:
                 raise ValueError(
                     f"Derivation {derivation.derivation_id!r} references unknown artifact "
                     f"{derivation.source_artifact_id!r}."
                 )
-            episode_ids.extend(item.episode_id for item in derivation.episodes)
+
+            if derivation.source_record_id != artifact.record_id:
+                raise ValueError(
+                    f"Derivation {derivation.derivation_id!r} source_record_id does not "
+                    "match its source artifact."
+                )
+
+            for episode in derivation.episodes:
+                if episode.schema_version != self.schema_version:
+                    raise ValueError(
+                        f"Episode {episode.episode_id!r} schema_version does not match "
+                        "the release manifest."
+                    )
+                episode_ids.append(episode.episode_id)
 
         if len(episode_ids) != len(set(episode_ids)):
             raise ValueError("Episode ids must be unique across release derivations.")
