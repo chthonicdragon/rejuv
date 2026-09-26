@@ -31,7 +31,7 @@ P0 blockers:
 - [ ] #10 Python/JSON semantic contract;
 - [ ] #11 artifact vs logical-record provenance topology;
 - [ ] #12 study/arm/contrast/statistical semantics;
-- [ ] #13 historical schema readers and migrations;
+- [x] #13 historical schema readers and migrations;
 - [ ] #14 canonical fingerprint/reproducible build identity;
 - [ ] #15 canonical intervention/experiment identity for leakage-safe splits.
 

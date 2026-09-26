@@ -167,6 +167,23 @@ A new source or benchmark should not require changing core domain objects unless
 
 ## Versioning
 
+Serialized contracts use a split writer/reader model:
+
+```text
+current writer aliases
+        |
+        v
+contracts/v0_1_0   contracts/v0_2_0   ...
+        ^                 ^
+        |                 |
+        +---- version-dispatch reader
+```
+
+Historical records are validated with the frozen reader for the version embedded in the
+record. Reading never migrates. Migration is an explicit derived-data operation.
+
+See [versioning.md](versioning.md) and RFC-0003.
+
 Three independent versions are required:
 
 - **software version**: implementation package;

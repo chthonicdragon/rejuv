@@ -1,0 +1,31 @@
+{
+  "manifest_version": "0.1.0",
+  "source_id": "synthetic-source",
+  "name": "Synthetic Rejuv Source",
+  "owner": "Rejuv tests",
+  "homepage": null,
+  "snapshot": {
+    "version": "fixture-1",
+    "released_at": null,
+    "accessed_at": "2026-09-26T00:00:00Z",
+    "etag": null,
+    "last_modified": null,
+    "immutable": true
+  },
+  "license": {
+    "name": "Synthetic fixture",
+    "spdx_id": "CC0-1.0",
+    "url": null,
+    "usage": {
+      "redistribution": "allowed",
+      "derivative_data": "allowed",
+      "commercial_use": "allowed",
+      "model_training": "allowed",
+      "attribution_required": false,
+      "notes": null
+    },
+    "citation": null
+  },
+  "update_cadence": null,
+  "notes": null
+}
