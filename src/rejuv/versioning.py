@@ -44,6 +44,9 @@ _RELEASE_MANIFEST_READERS: dict[str, type[BaseModel]] = {
     "0.1.0": DataReleaseManifestV010,
 }
 
+# Trusted migrations are code-owned. Third-party adapters/plugins must not be able to
+# register runtime transformations that reinterpret historical scientific records.
+# Add migration edges here together with the target contract version and tests.
 _MIGRATIONS: dict[ContractKind, dict[tuple[str, str], Migration]] = {
     ContractKind.INTERVENTION_EPISODE: {},
     ContractKind.SOURCE_MANIFEST: {},
@@ -128,20 +131,6 @@ def current_version(kind: ContractKind) -> str:
     if kind is ContractKind.DATA_RELEASE_MANIFEST:
         return RELEASE_MANIFEST_VERSION
     raise AssertionError(f"Unhandled contract kind: {kind}")
-
-
-def register_migration(
-    kind: ContractKind,
-    from_version: str,
-    to_version: str,
-    migration: Migration,
-) -> None:
-    if from_version == to_version:
-        raise ValueError("Migration edges must connect different versions.")
-    edge = (from_version, to_version)
-    if edge in _MIGRATIONS[kind]:
-        raise ValueError(f"Migration already registered for {kind.value} {edge}.")
-    _MIGRATIONS[kind][edge] = migration
 
 
 def _find_migration_path(
