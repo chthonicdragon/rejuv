@@ -153,31 +153,56 @@ def check_validation_profile_version() -> list[str]:
     return []
 
 
-
-def check_validation_profile_immutability() -> list[str]:
-    """Published profile artifacts are immutable under the same profile version."""
-    profile_paths = [
-        path for path in GENERATED_ARTIFACTS if path.parts[:2] == ("schemas", "validation")
-    ]
-    existing_in_base: list[tuple[Path, dict[str, Any]]] = []
-
-    for relative_path in profile_paths:
-        base_artifact = load_base_schema(relative_path)
-        if base_artifact is not None:
-            existing_in_base.append((relative_path, base_artifact))
-
-    if not existing_in_base:
-        # New profile version: there is no frozen profile with this version in base.
+def list_base_validation_profile_paths() -> list[Path]:
+    """List every validation-profile artifact already present on the PR base branch."""
+    base_ref = os.environ.get("GITHUB_BASE_REF")
+    if not base_ref:
         return []
 
+    for git_ref in (f"origin/{base_ref}", base_ref):
+        result = subprocess.run(
+            [
+                "git",
+                "ls-tree",
+                "-r",
+                "--name-only",
+                git_ref,
+                "--",
+                "schemas/validation",
+            ],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode == 0:
+            return [
+                Path(line)
+                for line in result.stdout.splitlines()
+                if line.strip().endswith(".json")
+            ]
+    return []
+
+
+def check_validation_profile_immutability() -> list[str]:
+    """Every profile artifact that existed on the base branch is immutable."""
     errors: list[str] = []
-    for relative_path, base_artifact in existing_in_base:
-        current = load_json(ROOT / relative_path)
+
+    for relative_path in list_base_validation_profile_paths():
+        local_path = ROOT / relative_path
+        if not local_path.exists():
+            errors.append(f"Frozen validation profile artifact was removed: {relative_path}.")
+            continue
+
+        base_artifact = load_base_schema(relative_path)
+        if base_artifact is None:
+            continue
+
+        current = load_json(local_path)
         if canonical_json(base_artifact) != canonical_json(current):
             errors.append(
-                "Frozen validation profile artifact changed without a new profile version: "
-                f"{relative_path}. Add a new validation profile version instead of editing "
-                f"{VALIDATION_PROFILE_VERSION}."
+                "Frozen validation profile artifact changed: "
+                f"{relative_path}. Add a new validation profile version instead."
             )
     return errors
 
