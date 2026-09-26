@@ -11,13 +11,43 @@ The roadmap optimizes for scientific usefulness and architectural stability, not
 - [x] InterventionEpisode RFC;
 - [x] initial schema implementation;
 - [x] benchmark-spec format;
-- [ ] schema export consistency test;
+- [x] schema export consistency test;
 - [ ] ontology mapping policy;
-- [ ] provenance manifest format;
-- [ ] source-adapter interface;
-- [ ] first CI validation workflow.
+- [x] initial provenance/release manifest format;
+- [x] initial source-adapter interface;
+- [x] first CI validation workflow (runner availability currently external/blocking).
 
-Exit criterion: a synthetic InterventionEpisode validates identically in Python and JSON Schema.
+Exit criterion: public contracts have explicit structural and semantic validation rules,
+and synthetic records are reproducibly traceable from source artifact to normalized
+episode.
+
+## Phase 0.5 — Foundation hardening gate
+
+**Goal:** resolve migration-sensitive gaps found in the 2026-09-26 foundation audit
+before real corpus ingestion.
+
+P0 blockers:
+
+- [ ] #10 Python/JSON semantic contract;
+- [ ] #11 artifact vs logical-record provenance topology;
+- [ ] #12 study/arm/contrast/statistical semantics;
+- [ ] #13 historical schema readers and migrations;
+- [ ] #14 canonical fingerprint/reproducible build identity;
+- [ ] #15 canonical intervention/experiment identity for leakage-safe splits.
+
+Supporting work:
+
+- [ ] #18 units/regimen/strain/ontology normalization;
+- [ ] #19 one local verification command independent of GitHub Actions.
+
+See [foundation-audit-2026-09-26.md](foundation-audit-2026-09-26.md).
+
+**Gate rule:** do not begin bulk real-data normalization while migration-sensitive P0
+contracts are still unresolved. A tiny exploratory adapter/fixture is allowed only when
+it is explicitly disposable and not treated as a release.
+
+Exit criterion: a controlled lifespan experiment can be represented with truthful
+provenance, control/contrast semantics, stable versioning, and reproducible identity.
 
 ## Phase 1 — Small high-quality corpus
 
