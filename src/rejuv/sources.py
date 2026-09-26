@@ -3,11 +3,11 @@ from __future__ import annotations
 import hashlib
 import hmac
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date
 from enum import StrEnum
 from typing import Final, Iterable, Literal, Protocol, Sequence, TypeVar, runtime_checkable
 
-from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, HttpUrl, field_validator
 
 from rejuv.models import InterventionEpisode
 
@@ -74,7 +74,7 @@ class LicenseInfo(SourceModel):
 class SourceSnapshot(SourceModel):
     version: str | None = None
     released_at: date | None = None
-    accessed_at: datetime
+    accessed_at: AwareDatetime
     etag: str | None = None
     last_modified: str | None = None
     immutable: bool = False
@@ -114,7 +114,7 @@ class SourceArtifact(SourceModel):
     checksum: Checksum
     size_bytes: int = Field(ge=0)
     media_type: str | None = None
-    retrieved_at: datetime
+    retrieved_at: AwareDatetime
     source_version: str | None = None
 
 
@@ -130,7 +130,7 @@ class FetchedArtifact:
         artifact_id: str,
         record: SourceRecordRef,
         content: bytes,
-        retrieved_at: datetime,
+        retrieved_at: AwareDatetime,
         media_type: str | None = None,
         source_version: str | None = None,
     ) -> "FetchedArtifact":
