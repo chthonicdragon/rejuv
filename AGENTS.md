@@ -58,13 +58,15 @@ Do not edit a lower layer to make a higher layer pass.
 Before modifying public model semantics:
 
 1. inspect current RFCs;
-2. determine whether the change can be represented using existing extension points;
-3. if not, create/update an RFC;
-4. document migration impact;
-5. update Python models;
-6. regenerate JSON Schema;
-7. add compatibility tests;
-8. update documentation.
+2. never edit a frozen `rejuv.contracts.vX_Y_Z` package merely to implement a newer contract;
+3. determine whether the change can be represented using existing extension points;
+4. if not, create/update an RFC;
+5. document read compatibility and whether an explicit migration is possible;
+6. add a new versioned contract package for a new serialized version;
+7. update current-writer aliases;
+8. regenerate JSON Schema;
+9. add frozen compatibility fixtures and historical-reader tests;
+10. update documentation.
 
 Do not create project-local biological vocabulary when an established ontology identifier is suitable.
 
