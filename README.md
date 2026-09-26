@@ -92,6 +92,19 @@ The test split must contain interventions not available to the model through the
 
 See [docs/benchmarking.md](docs/benchmarking.md).
 
+## Validation
+
+External or stored payloads are validated through a versioned two-stage contract:
+
+```text
+strict JSON Schema -> semantic validation profile -> ValidationReport
+```
+
+Pydantic models remain versioned Python readers/deserializers; `model_validate()` alone
+is not the language-neutral validity definition.
+
+See [docs/validation.md](docs/validation.md).
+
 ## Repository layout
 
 ```text
@@ -189,6 +202,7 @@ Major schema or benchmark changes require an RFC. Current accepted foundation RF
 - [RFC-0001: InterventionEpisode v0.1](rfcs/0001-intervention-episode.md)
 - [RFC-0002: SourceAdapter and release manifest contracts](rfcs/0002-source-adapter-release-manifests.md)
 - [RFC-0003: Contract versioning and historical readers](rfcs/0003-contract-versioning.md)
+- [RFC-0004: Structural and semantic validation profiles](rfcs/0004-validation-profiles.md)
 
 The current foundation audit and hardening gate are documented in
 [docs/foundation-audit-2026-09-26.md](docs/foundation-audit-2026-09-26.md).
