@@ -52,6 +52,17 @@ class ValidationReport:
         return not any(issue.layer is ValidationLayer.SEMANTIC for issue in self.issues)
 
 
+def _patch_http_urls(node: Any) -> None:
+    if isinstance(node, dict):
+        if node.get("format") == "uri":
+            node["pattern"] = "^https?://"
+        for value in node.values():
+            _patch_http_urls(value)
+    elif isinstance(node, list):
+        for value in node:
+            _patch_http_urls(value)
+
+
 def _patch_checksum_schema(schema: dict[str, Any]) -> None:
     checksum = schema.get("$defs", {}).get("Checksum")
     if not isinstance(checksum, dict):
@@ -113,6 +124,7 @@ def _patch_evidence_source_pointer(schema: dict[str, Any]) -> None:
 def strict_intervention_episode_schema() -> dict[str, Any]:
     schema = deepcopy(InterventionEpisode.model_json_schema())
     schema["x-rejuv-validation-profile-version"] = VALIDATION_PROFILE_VERSION
+    _patch_http_urls(schema)
     _patch_evidence_source_pointer(schema)
     return schema
 
@@ -120,6 +132,7 @@ def strict_intervention_episode_schema() -> dict[str, Any]:
 def strict_source_manifest_schema() -> dict[str, Any]:
     schema = deepcopy(SourceManifest.model_json_schema())
     schema["x-rejuv-validation-profile-version"] = VALIDATION_PROFILE_VERSION
+    _patch_http_urls(schema)
     _patch_checksum_schema(schema)
     return schema
 
