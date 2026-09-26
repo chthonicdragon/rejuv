@@ -27,9 +27,13 @@ GENERATED_ARTIFACTS: dict[Path, dict[str, Any]] = {
     Path("schemas/intervention_episode.schema.json"): intervention_episode_json_schema(),
     Path("schemas/source_manifest.schema.json"): SourceManifest.model_json_schema(),
     Path("schemas/data_release_manifest.schema.json"): DataReleaseManifest.model_json_schema(),
-    Path("schemas/validation/v0_1_0/intervention_episode.schema.json"): strict_intervention_episode_schema(),
+    Path("schemas/validation/v0_1_0/intervention_episode.schema.json"): (
+        strict_intervention_episode_schema()
+    ),
     Path("schemas/validation/v0_1_0/source_manifest.schema.json"): strict_source_manifest_schema(),
-    Path("schemas/validation/v0_1_0/data_release_manifest.schema.json"): strict_data_release_manifest_schema(),
+    Path("schemas/validation/v0_1_0/data_release_manifest.schema.json"): (
+        strict_data_release_manifest_schema()
+    ),
     Path("schemas/validation/v0_1_0/profile.json"): validation_profile(),
 }
 
