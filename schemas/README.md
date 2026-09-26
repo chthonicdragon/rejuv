@@ -1,62 +1,98 @@
 # Schemas
 
-Rejuv uses a single-source-of-truth policy for schema behavior.
+Rejuv publishes two related kinds of machine-readable artifacts.
 
-During pre-1.0 development, the authoritative implementation is the typed Pydantic model in:
+## Record schemas
+
+These describe the serialized shape generated from the current writer contracts:
 
 ```text
-src/rejuv/models.py
+schemas/intervention_episode.schema.json
+schemas/source_manifest.schema.json
+schemas/data_release_manifest.schema.json
 ```
 
-The language-neutral JSON Schema artifact is generated with:
+They are generated, never hand-edited.
+
+## Validation profiles
+
+Record shape is not enough for scientific validity. Cross-field, ordering, referential,
+and graph rules are versioned separately as validation profiles.
+
+Profile 0.1.0 exports:
+
+```text
+schemas/validation/v0_1_0/intervention_episode.schema.json
+schemas/validation/v0_1_0/source_manifest.schema.json
+schemas/validation/v0_1_0/data_release_manifest.schema.json
+schemas/validation/v0_1_0/profile.json
+```
+
+The strict schemas contain portable constraints that JSON Schema 2020-12 can express.
+The profile describes semantic rules and their stable ids.
+
+A record is considered valid for interchange only after both stages pass:
+
+```text
+strict JSON Schema
+        +
+semantic validation
+        =
+valid Rejuv payload
+```
+
+Do not treat a successful Pydantic `model_validate()` call as the language-neutral
+validity contract. Historical Pydantic models are versioned readers/deserializers and
+may contain Python-specific validation or coercion behavior.
+
+## Generation
+
+Run:
 
 ```bash
 python scripts/export_schema.py
 ```
 
-The generated artifact is committed at:
+The command writes all public schema and validation artifacts.
+
+`python scripts/check_schema_contract.py` fails if any checked-in generated artifact
+drifts from code.
+
+## Independent versioning
+
+The following versions are intentionally separate:
 
 ```text
-schemas/intervention_episode.schema.json
+software version
+record schema version
+source-manifest contract version
+release-manifest contract version
+validation-profile version
+data-release version
 ```
 
-Do not hand-edit it.
+A validation-profile change does not silently rewrite historical scientific records.
 
-## Reproducibility
+## Historical contracts and profiles
 
-Schema generation is part of the public contract. The development environment pins the Pydantic generator version used by CI so a dependency upgrade cannot silently rewrite the checked-in schema.
-
-CI performs two independent checks:
-
-1. the checked-in JSON Schema must equal the schema generated from the current Pydantic model;
-2. on pull requests, if the generated schema differs from the base branch, `schema_version` must increase monotonically.
-
-## Versioning
-
-Schema versions are independent from software and data releases.
+Historical record readers are frozen under:
 
 ```text
-software: 0.x.y
-schema:   0.x.y
-data:     YYYY.MM
+src/rejuv/contracts/vX_Y_Z/
 ```
 
-RFC-0001 currently defines:
+Historical validation profiles are frozen under:
 
-- patch: constraints/docs that do not change the semantics of valid records;
-- minor: backward-compatible schema capability;
-- major: breaking schema semantics.
+```text
+src/rejuv/validation_profiles/vX_Y_Z.py
+```
 
-A breaking semantic change also requires an RFC and migration notes.
+Do not edit an old frozen contract/profile to implement a new version. Add a new version
+and retain compatibility/parity fixtures.
 
-Compatibility fixtures under `tests/fixtures/schema_<version>/` protect previously published record shapes. Do not delete an old fixture simply to make a new schema pass.
+See:
 
-## Historical readers
-
-The checked-in schema file represents the **current writer** contract.
-
-Historical Python readers are frozen under `src/rejuv/contracts/vX_Y_Z/` and selected
-through `rejuv.versioning`.
-
-Do not validate stored historical records by assuming the current writer version.
-See [docs/versioning.md](../docs/versioning.md) and RFC-0003.
+- [docs/versioning.md](../docs/versioning.md)
+- [docs/validation.md](../docs/validation.md)
+- [RFC-0003](../rfcs/0003-contract-versioning.md)
+- [RFC-0004](../rfcs/0004-validation-profiles.md)
