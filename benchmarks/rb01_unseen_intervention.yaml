@@ -1,0 +1,58 @@
+name: rb01_unseen_intervention
+version: 0.1.0
+status: draft
+description: >
+  Predict outcomes for biological interventions held out from benchmark training.
+
+schema_version: 0.1.0
+data_release: dev
+
+eligibility:
+  minimum_curation_level: L2
+  require_evidence: true
+  require_intervention: true
+  allow_model_generated_targets: false
+
+split:
+  strategy: intervention_holdout
+  group_by:
+    - intervention_id
+  disallow_overlap:
+    - episode_id
+    - intervention_id
+
+inputs:
+  - context
+  - baseline
+  - interventions
+
+targets:
+  - effect_direction
+  - effect_magnitude
+  - adverse_effect_signal
+
+uncertainty:
+  required: true
+
+metrics:
+  effect_direction:
+    - balanced_accuracy
+    - macro_f1
+  effect_magnitude:
+    - mae
+    - spearman
+  adverse_effect_signal:
+    - auprc
+    - brier_score
+  calibration:
+    - expected_calibration_error
+
+baselines:
+  - prevalence
+  - nearest_neighbor
+  - logistic_or_linear
+  - tree_based
+
+reporting:
+  require_run_manifest: true
+  report_pretraining_contamination_uncertainty: true
