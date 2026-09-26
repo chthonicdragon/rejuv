@@ -71,6 +71,12 @@ JSON Schema failures are reported as `JSON_SCHEMA_<KEYWORD>` (for example
 These codes identify the schema mechanism. Semantic automation should use the explicit
 semantic rule ids listed above.
 
+The machine-readable `profile.json` enumerates the non-trivial named invariants that
+need stable cross-language identities. Ordinary field-level structural constraints
+(required fields, primitive types, enums, bounds, and similar rules) remain fully
+specified by the exported strict JSON Schemas rather than being duplicated as thousands
+of profile rule entries.
+
 ## Generated artifacts
 
 Run:
