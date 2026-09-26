@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from types import ModuleType
-from typing import Any, Final
+from typing import Any, Final, Protocol
 
 from rejuv.validation_profiles import v0_1_0
 from rejuv.validation_types import (
@@ -16,12 +15,29 @@ from rejuv.validation_types import (
 VALIDATION_PROFILE_VERSION: Final[str] = "0.1.0"
 SUPPORTED_VALIDATION_PROFILE_VERSIONS: Final[tuple[str, ...]] = ("0.1.0",)
 
-_PROFILES: dict[str, ModuleType] = {
+
+class _ValidationProfile(Protocol):
+    def validation_profile(self) -> dict[str, Any]: ...
+
+    def strict_intervention_episode_schema(self) -> dict[str, Any]: ...
+
+    def strict_source_manifest_schema(self) -> dict[str, Any]: ...
+
+    def strict_data_release_manifest_schema(self) -> dict[str, Any]: ...
+
+    def validate_intervention_episode(self, payload: JSONValue) -> ValidationReport: ...
+
+    def validate_source_manifest(self, payload: JSONValue) -> ValidationReport: ...
+
+    def validate_data_release_manifest(self, payload: JSONValue) -> ValidationReport: ...
+
+
+_PROFILES: dict[str, _ValidationProfile] = {
     "0.1.0": v0_1_0,
 }
 
 
-def _profile(profile_version: str) -> ModuleType:
+def _profile(profile_version: str) -> _ValidationProfile:
     profile = _PROFILES.get(profile_version)
     if profile is None:
         supported = ", ".join(SUPPORTED_VALIDATION_PROFILE_VERSIONS)
