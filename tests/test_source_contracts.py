@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+import json
 from pathlib import Path
 
 import pytest
@@ -14,7 +15,7 @@ from rejuv.releases import (
     normalized_episode_ref,
 )
 from rejuv.models import InterventionEpisode
-from rejuv.sources import Checksum, FetchedArtifact, SourceAdapter
+from rejuv.sources import Checksum, FetchedArtifact, SourceAdapter, SourceManifest
 from tests.support.synthetic_adapter import SyntheticAdapter
 
 
@@ -180,3 +181,17 @@ def test_release_manifest_rejects_record_lineage_mismatch() -> None:
             ],
             episode_count=1,
         )
+
+
+def test_machine_readable_manifest_examples_validate() -> None:
+    source_payload = json.loads(
+        (ROOT / "examples" / "source_manifest.synthetic.json").read_text(encoding="utf-8")
+    )
+    release_payload = json.loads(
+        (ROOT / "examples" / "data_release_manifest.synthetic.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    SourceManifest.model_validate(source_payload)
+    DataReleaseManifest.model_validate(release_payload)
