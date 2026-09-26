@@ -235,7 +235,7 @@ def _structural_issues(
     )
     return [
         ValidationIssue(
-            code=f"JSON_SCHEMA_{error.validator.upper()}",
+            code=f"JSON_SCHEMA_{str(error.validator or 'unknown').upper()}",
             layer=ValidationLayer.STRUCTURAL,
             path=tuple(error.absolute_path),
             message=error.message,
@@ -306,7 +306,10 @@ def _episode_semantic_issues(payload: dict[str, Any]) -> list[ValidationIssue]:
         for index, item in enumerate(payload.get(collection, [])):
             if not isinstance(item, dict):
                 continue
-            for ref_index, evidence_id in enumerate(item.get("evidence_ids", [])):
+            evidence_ids = item.get("evidence_ids", [])
+            if not isinstance(evidence_ids, list):
+                continue
+            for ref_index, evidence_id in enumerate(evidence_ids):
                 if isinstance(evidence_id, str) and evidence_id not in known:
                     issues.append(
                         ValidationIssue(
@@ -364,7 +367,7 @@ def _release_semantic_issues(payload: dict[str, Any]) -> list[ValidationIssue]:
 
     for index, artifact in enumerate(artifacts):
         source_id = artifact.get("source_id")
-        source = source_by_id.get(source_id)
+        source = source_by_id.get(source_id) if isinstance(source_id, str) else None
         if source is None and isinstance(source_id, str):
             issues.append(
                 ValidationIssue(
@@ -398,7 +401,7 @@ def _release_semantic_issues(payload: dict[str, Any]) -> list[ValidationIssue]:
     release_schema_version = payload.get("schema_version")
     for derivation_index, derivation in enumerate(derivations):
         artifact_id = derivation.get("source_artifact_id")
-        artifact = artifact_by_id.get(artifact_id)
+        artifact = artifact_by_id.get(artifact_id) if isinstance(artifact_id, str) else None
         if artifact is None and isinstance(artifact_id, str):
             issues.append(
                 ValidationIssue(
