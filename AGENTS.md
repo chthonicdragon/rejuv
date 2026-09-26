@@ -70,6 +70,23 @@ Before modifying public model semantics:
 
 Do not create project-local biological vocabulary when an established ontology identifier is suitable.
 
+## Validation changes
+
+For external/stored payload validity, use the versioned validation profile API rather
+than relying on Pydantic `model_validate()` alone.
+
+When changing validation behavior:
+
+1. classify the invariant as structural, semantic, or intentionally both;
+2. preserve stable semantic rule ids;
+3. never rewrite a frozen `validation_profiles/vX_Y_Z` module to introduce a new profile;
+4. add negative parity fixtures for meaningful failure modes;
+5. regenerate all schema/profile artifacts;
+6. run `python scripts/verify.py`.
+
+Validators report problems; they must not silently repair, reorder, infer, or normalize
+scientific data.
+
 ## Benchmark changes
 
 Any benchmark change must consider:
