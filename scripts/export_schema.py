@@ -14,7 +14,7 @@ def main() -> None:
     TARGET.parent.mkdir(parents=True, exist_ok=True)
     payload = intervention_episode_json_schema()
     TARGET.write_text(
-        json.dumps(payload, indent=2, sort_keys=True) + "\n",
+        json.dumps(payload, sort_keys=True, separators=(",", ":")) + "\n",
         encoding="utf-8",
     )
     print(TARGET)
