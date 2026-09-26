@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-import json
 from copy import deepcopy
+import json
 from pathlib import Path
+from typing import Literal
 
 import pytest
+from pydantic import BaseModel, ConfigDict, ValidationError
 
 from rejuv.contracts.v0_1_0.models import InterventionEpisode as InterventionEpisodeV010
 from rejuv.contracts.v0_1_0.releases import (
@@ -131,6 +133,18 @@ def test_explicit_migration_registry_supports_future_chains(monkeypatch) -> None
 
     import rejuv.versioning as versioning
 
+    class TestV020(BaseModel):
+        model_config = ConfigDict(extra="allow")
+        schema_version: Literal["test-0.2.0"]
+        migration_marker: str
+
+    class TestV030(BaseModel):
+        model_config = ConfigDict(extra="allow")
+        schema_version: Literal["test-0.3.0"]
+        migration_marker: str
+
+    monkeypatch.setitem(versioning._EPISODE_READERS, "test-0.2.0", TestV020)
+    monkeypatch.setitem(versioning._EPISODE_READERS, "test-0.3.0", TestV030)
     monkeypatch.setitem(
         versioning._MIGRATIONS[ContractKind.INTERVENTION_EPISODE],
         ("0.1.0", "test-0.2.0"),
@@ -172,7 +186,7 @@ def test_migration_rejects_invalid_historical_payload_before_transforming() -> N
     payload = load_json(EPISODE_FIXTURE)
     payload["interventions"] = []
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         migrate_intervention_episode(payload)
 
 
