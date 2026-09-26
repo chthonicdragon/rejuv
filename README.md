@@ -166,9 +166,13 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md), [GOVERNANCE.md](GOVERNANCE.md), and [AG
 
 ## Design RFCs
 
-Major schema or benchmark changes require an RFC. The first is:
+Major schema or benchmark changes require an RFC. Current accepted foundation RFCs:
 
 - [RFC-0001: InterventionEpisode v0.1](rfcs/0001-intervention-episode.md)
+- [RFC-0002: SourceAdapter and release manifest contracts](rfcs/0002-source-adapter-release-manifests.md)
+
+The current foundation audit and hardening gate are documented in
+[docs/foundation-audit-2026-09-26.md](docs/foundation-audit-2026-09-26.md).
 
 ## Safety and scientific scope
 
