@@ -86,8 +86,8 @@ def _patch_evidence_source_pointer(schema: dict[str, Any]) -> None:
 def strict_intervention_episode_schema() -> dict[str, Any]:
     schema = deepcopy(InterventionEpisode.model_json_schema())
     schema["x-rejuv-validation-profile-version"] = PROFILE_VERSION
-    _patch_http_urls(schema)
     _patch_evidence_source_pointer(schema)
+    _patch_http_urls(schema)
     return schema
 
 
@@ -102,6 +102,7 @@ def strict_source_manifest_schema() -> dict[str, Any]:
 def strict_data_release_manifest_schema() -> dict[str, Any]:
     schema = deepcopy(DataReleaseManifest.model_json_schema())
     schema["x-rejuv-validation-profile-version"] = PROFILE_VERSION
+    _patch_http_urls(schema)
     _patch_checksum_schema(schema)
     return schema
 
