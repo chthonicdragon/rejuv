@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import Any, Literal
+from typing import Any, Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, model_validator
+
+
+CURRENT_SCHEMA_VERSION: Final[str] = "0.1.0"
+SUPPORTED_SCHEMA_VERSIONS: Final[tuple[str, ...]] = ("0.1.0",)
 
 
 class StrictModel(BaseModel):
@@ -202,6 +206,15 @@ class Provenance(StrictModel):
 
 
 class InterventionEpisode(StrictModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "x-rejuv-schema-version": CURRENT_SCHEMA_VERSION,
+            "x-rejuv-supported-schema-versions": list(SUPPORTED_SCHEMA_VERSIONS),
+        },
+    )
+
     episode_id: str = Field(min_length=1)
     schema_version: Literal["0.1.0"] = "0.1.0"
     study_id: str = Field(min_length=1)
