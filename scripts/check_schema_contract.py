@@ -206,6 +206,7 @@ def check_validation_profile_immutability() -> list[str]:
             )
     return errors
 
+
 def main() -> int:
     errors = [
         *check_generated_artifacts(),
