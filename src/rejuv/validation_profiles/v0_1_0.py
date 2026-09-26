@@ -14,6 +14,7 @@ from rejuv.versioning import ContractKind
 
 PROFILE_VERSION: Final[str] = "0.1.0"
 
+
 def _patch_http_urls(node: Any) -> None:
     if isinstance(node, dict):
         if node.get("format") == "uri":
