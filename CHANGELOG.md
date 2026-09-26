@@ -15,4 +15,6 @@ The project is pre-1.0; schema compatibility rules are defined in RFCs and docum
 - evidence and provenance policy;
 - agent operating contract;
 - contribution and governance policies;
-- initial CI and collaboration templates.
+- initial CI and collaboration templates;
+- typed SourceAdapter, source-rights, checksum, and release-manifest contracts;
+- deterministic raw-to-normalized lineage and synthetic adapter fixture.
