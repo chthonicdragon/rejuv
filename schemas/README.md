@@ -50,3 +50,13 @@ RFC-0001 currently defines:
 A breaking semantic change also requires an RFC and migration notes.
 
 Compatibility fixtures under `tests/fixtures/schema_<version>/` protect previously published record shapes. Do not delete an old fixture simply to make a new schema pass.
+
+## Historical readers
+
+The checked-in schema file represents the **current writer** contract.
+
+Historical Python readers are frozen under `src/rejuv/contracts/vX_Y_Z/` and selected
+through `rejuv.versioning`.
+
+Do not validate stored historical records by assuming the current writer version.
+See [docs/versioning.md](../docs/versioning.md) and RFC-0003.
