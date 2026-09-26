@@ -117,21 +117,40 @@ def test_validation_profile_artifact_paths_follow_profile_version() -> None:
 
 
 def test_new_validation_profile_has_no_frozen_base_conflict(monkeypatch) -> None:
-    monkeypatch.setattr(schema_contract, "load_base_schema", lambda path: None)
+    monkeypatch.setattr(schema_contract, "list_base_validation_profile_paths", lambda: [])
     assert schema_contract.check_validation_profile_immutability() == []
 
 
 def test_frozen_validation_profile_rejects_same_version_changes(monkeypatch) -> None:
+    profile_path = Path("schemas/validation/v0_1_0/profile.json")
+
     def fake_base(path: Path):
         current = schema_contract.load_json(schema_contract.ROOT / path)
-        if path.name == "profile.json":
-            changed = dict(current)
-            changed["profile_version"] = "tampered-same-version"
-            return changed
-        return current
+        changed = dict(current)
+        changed["profile_version"] = "tampered-same-version"
+        return changed
 
+    monkeypatch.setattr(
+        schema_contract,
+        "list_base_validation_profile_paths",
+        lambda: [profile_path],
+    )
     monkeypatch.setattr(schema_contract, "load_base_schema", fake_base)
     errors = schema_contract.check_validation_profile_immutability()
 
     assert len(errors) == 1
     assert "Frozen validation profile artifact changed" in errors[0]
+
+
+def test_frozen_validation_profile_rejects_artifact_removal(monkeypatch, tmp_path) -> None:
+    missing = Path("schemas/validation/v0_1_0/missing.json")
+    monkeypatch.setattr(schema_contract, "ROOT", tmp_path)
+    monkeypatch.setattr(
+        schema_contract,
+        "list_base_validation_profile_paths",
+        lambda: [missing],
+    )
+
+    errors = schema_contract.check_validation_profile_immutability()
+
+    assert errors == [f"Frozen validation profile artifact was removed: {missing}."]
